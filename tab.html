@@ -28,7 +28,7 @@
             border-radius: 5px 5px 0 0;
             padding: 5px 10px;
             cursor: pointer;
-            background: #fff;
+            background: #ddd;
             position: relative;
             z-index: 1;
             transition: background .3s;
@@ -37,6 +37,7 @@
         .tabWrap.active {
             border-bottom: 1px solid #fff;
             color: #333;
+            background: #fff;
         }
         .tabWrap:not(:last-of-type) {
             margin-right: 5px;
@@ -87,7 +88,7 @@
             defaultActiveTabIndex: 0,
             background: [],
             tabFullWidth: true,
-            refreshMode: false
+            fetchEnable: false
         }
         option = {
             ...optionDefault,
@@ -95,6 +96,11 @@
         }
         
         const tabMenuId = `tabMenu-${Math.floor(Math.random() * 10e5)}`
+
+        const getPromise = (index) => {
+            if(option.fetchEnable) tabDataArray[index]()
+            .then(result => document.querySelector(`#${tabMenuId} #tabChild .tab:nth-child(${index + 1})`).innerHTML = result)
+        }
 
         document.querySelector(`#${insertElementId}`).insertAdjacentHTML("afterbegin", `
         <article id="${tabMenuId}">
@@ -109,6 +115,7 @@
         document.head.insertAdjacentHTML("beforeend", `<style>
             ${option.background.map((e, i) => `#${tabMenuId} .tabWrap:nth-child(${i + 1}).active {background: ${e}; border-bottom: 1px solid ${e};}`).join("")}
             ${option.background.map((e, i) => `#${tabMenuId} .tab:nth-child(${i + 1}) {background: ${e}}`).join("")}
+            ${option.background.length ? `#${tabMenuId} .tabWrap {background: #fff}` : ``}
             #${tabMenuId} .tabWrap {width: ${option.tabFullWidth ? `calc((100% - ${(tabNameArray.length - 1) * 5}px) / ${tabNameArray.length})` : ""}}
         </style>`)
 
@@ -119,20 +126,28 @@
                 
                 document.querySelectorAll(`#${tabMenuId} #tabChild .tab`).forEach(element => element.classList.add("hide"))
                 document.querySelector(`#${tabMenuId} #tabChild .tab:nth-child(${index + 1})`).classList.remove("hide")
+
+                getPromise(index)
         }))
+        getPromise(option.defaultActiveTabIndex)
     }
-    tabMenu(
-        ["첫번째 탭", "두번째 탭", "세번째 탭"], 
-        ["첫번째 내용입니다. <br>111", "두번째 내용입니다. <br>222", "세번째 내용입니다. <br>333"], 
-        "here", {
-            background: ["skyblue", "rgb(205, 255, 205)", "#aaa"]
-        })
     // tabMenu(
     //     ["첫번째 탭", "두번째 탭", "세번째 탭"], 
-    //     [Promise.resolve(Math.floor(Math.random() * 10e1)), Promise.resolve(Math.floor(Math.random() * 10e2)), Promise.resolve(Math.floor(Math.random() * 10e3))], 
+    //     ["첫번째 내용입니다. <br>111", "두번째 내용입니다. <br>222", "세번째 내용입니다. <br>333"], 
     //     "here", {
-    //         background: ["skyblue", "rgb(205, 255, 205)", "#aaa"],
-    //         refreshMode: true
+    //         background: ["skyblue", "rgb(205, 255, 205)", "#aaa"]
     //     })
+    tabMenu(
+        ["첫번째 탭", "두번째 탭", "세번째 탭"], 
+        [
+            () => Promise.resolve(Date()), 
+            () => Promise.resolve(Date.now()), 
+            () => Promise.resolve(Math.floor(Math.random() * 10e2))
+        ], 
+        "here", 
+        {
+            background: ["skyblue", "rgb(205, 255, 205)", "#aaa"],
+            fetchEnable: true
+        })
 </script>
 </html>
